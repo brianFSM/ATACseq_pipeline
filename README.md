@@ -1,6 +1,5 @@
 # ATAC-seq pipeline with snakemake
 ###  Created 18-Feb-2021
-###  Author: Brian Wray
 
 
 ## Before the pipeline, here are considerations for experiment design:
@@ -13,7 +12,7 @@
 - paired-end sequencing is preferred
 
 ## Basic steps of ATACseq
-[source] (https://yiweiniu.github.io/blog/2019/03/ATAC-seq-data-analysis-from-FASTQ-to-peaks/)
+[from here](https://yiweiniu.github.io/blog/2019/03/ATAC-seq-data-analysis-from-FASTQ-to-peaks/)
 
 ### Reads to Peaks
 - trim reads with cutadapt
@@ -40,4 +39,27 @@
 - Calculate IDR values ([Irreproducible Discovery Rate](https://www.encodeproject.org/data-standards/terms/#concordance)). Rescue and self consistency rations should be < 2
 - Calculate TSS enrichment and FRiP score
 - Plot fragment size distribution
+
+## Params file
+### Necessary information
+- filebase
+- SE or PE sequencing (default to PE)
+- reference
+- comparisons
+- replicates
+
+### Other notes
+- For now, consider running both HOMER and MACS2
+- Make heatmap with deeptools
+- Different ways of dealing with replicates (combine bam files and call peaks, or merge peaks?)
+- diff peaks with Homer or edgeR (which can run in homer)
+- setup directory structure to have project/data/reads... and project/analysis/reference/peaks...
+- generate README.md
+- be sure to load modules with version number
+
+
+
+
+
+
 

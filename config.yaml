@@ -1,0 +1,17 @@
+samples:
+        A: [data/samples/A_R1.fq.gz, data/samples/A_R2.fq.gz]
+        B: [data/samples/B_R1.fq.gz, data/samples/B_R2.fq.gz]
+        C: [data/samples/C_R1.fq.gz, data/samples/C_R2.fq.gz]
+        
+# Trimming options
+trimDir: data/trimmed_reads
+stringency: 5 # Overlap with adapter sequence required to trim a sequence. 
+qScore: 20 # Minimum Q score cutoff for filtering reads in cutadapt.
+trimLength: 20 # Maximum read length after trimming before discarding.
+trimErrorRate: 0.1 # Maximum error rate for trimming before discarding.
+
+# alignment options
+
+
+
+mutationRate: 0.001
