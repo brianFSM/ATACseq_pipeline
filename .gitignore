@@ -5,3 +5,4 @@ analyis/
 .snakemake
 logs/
 snakefiles/
+configs/

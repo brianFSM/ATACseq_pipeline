@@ -3,12 +3,20 @@ samples:
         B: [data/samples/B_R1.fq.gz, data/samples/B_R2.fq.gz]
         C: [data/samples/C_R1.fq.gz, data/samples/C_R2.fq.gz]
         
-# Trimming options
-trimDir: data/trimmed_reads
-stringency: 5 # Overlap with adapter sequence required to trim a sequence. 
-qScore: 20 # Minimum Q score cutoff for filtering reads in cutadapt.
-trimLength: 20 # Maximum read length after trimming before discarding.
-trimErrorRate: 0.1 # Maximum error rate for trimming before discarding.
+threads:
+        fastqc: 4
+        trimGalore: 4
+
+fastqc:
+        outdir: data/fastqc
+
+trim_galore: 
+        out_dir: data/trimmed_reads
+        stringency: 5 # Overlap with adapter sequence required to trim a sequence. 
+        qScore: 20 # Minimum Q score cutoff for filtering reads in cutadapt.
+        trimMinLength: 20 # Maximum read length after trimming before discarding.
+        trimErrorRate: 0.1 # Maximum error rate for trimming before discarding.
+        paired: -p
 
 # alignment options
 
