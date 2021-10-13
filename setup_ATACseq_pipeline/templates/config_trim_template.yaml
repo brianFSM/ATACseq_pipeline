@@ -1,0 +1,7 @@
+trimDir: data/trimmed_reads
+stringency: 5 # Overlap with adapter sequence required to trim a sequence. 
+qScore: 20 # Minimum Q score cutoff for filtering reads in cutadapt.
+trimLength: 20 # Maximum read length after trimming before discarding.
+trimErrorRate: 0.1 # Maximum error rate for trimming before discarding.
+trimOptions: # Quote a string of extra options you want to pass to trim_galore.
+paired: {{SE_or_PE}}
