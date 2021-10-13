@@ -8,8 +8,7 @@ curr_samples = config["samples"]
 
 rule all:
 	input:
-		expand("data/trimmed_reads/{sample}_trimmed_R1.fq.gz", sample = curr_samples),
-		expand("data/trimmed_reads/{sample}_trimmed_R2.fq.gz", sample = curr_samples),
+		expand("analysis/mapped_reads/{sample}.bam",  sample = curr_samples),
 		expand("data/fastqc/{sample}.fastqc.zip", sample = curr_samples)
 
 rule fastqc:
@@ -31,8 +30,8 @@ rule trimGalore:
 		expand("data/reads/{sample}_R1.fq.gz", sample=curr_samples),
 		expand("data/reads/{sample}_R2.fq.gz", sample = curr_samples)
 	output:
-		"data/trimmed_reads/{sample}_trimmed_R1.fq.gz",
-		"data/trimmed_reads/{sample}_trimmed_R2.fq.gz"
+		"data/trimmed_reads/{sample}_R1_trimmed.fq.gz",
+		"data/trimmed_reads/{sample}_R2_trimmed.fq.gz"
 	params:
 		stringency = config["trim_galore"]["stringency"],
 		qscore = config["trim_galore"]["qScore"],
@@ -55,3 +54,22 @@ rule trimGalore:
 		{input} 2> {log}
 		'''
 		
+rule bwa:
+	input:
+		"data/genome.fa",
+		expand("data/trimmed_reads/{sample}_R1_trimmed.fq.gz", sample = curr_samples),
+		expand("data/trimmed_reads/{sample}_R2_trimmed.fq.gz", sample = curr_samples)
+	output:
+		"analysis/mapped_reads/{sample}.bam"
+	params:
+                rg=r"@RG\tID:{sample}\tSM:{sample}"
+	log:
+                "logs/bwa_mem/{sample}.log"
+	threads: 
+		config["threads"]["bwa"] 
+	shell:
+                '''
+		bwa mem {input} -R {params.rg} -t {threads} {input} | \
+                samtools view -Sb - > {output} 2> {log}
+		'''
+

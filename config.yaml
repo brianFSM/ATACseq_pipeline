@@ -6,6 +6,7 @@ samples:
 threads:
         fastqc: 4
         trimGalore: 4
+        bwa: 4
 
 fastqc:
         outdir: data/fastqc
@@ -17,9 +18,5 @@ trim_galore:
         trimMinLength: 20 # Maximum read length after trimming before discarding.
         trimErrorRate: 0.1 # Maximum error rate for trimming before discarding.
         paired: -p
-
-# alignment options
-
-
 
 mutationRate: 0.001
