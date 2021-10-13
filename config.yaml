@@ -5,10 +5,17 @@ samples:
         
 threads:
         fastqc: 4
+        fastq_screen: 4
         trimGalore: 4
         bwa: 4
 
 fastqc:
+        outdir: data/fastqc
+
+fastq_screen:
+        aligner: bowtie2
+        conf: /projects/p20742//tools/bin/fastq_screen_v0.11.4/fastq_screen.allRefs.conf
+        ex_path: /projects/p20742//tools/bin/fastq_screen_v0.11.4/fastq_screen
         outdir: data/fastqc
 
 trim_galore: 
@@ -18,5 +25,8 @@ trim_galore:
         trimMinLength: 20 # Maximum read length after trimming before discarding.
         trimErrorRate: 0.1 # Maximum error rate for trimming before discarding.
         paired: -p
+
+picard:
+        path: /projects/b1012/xvault/software/GATK/gatk-4.0.1.0/
 
 mutationRate: 0.001

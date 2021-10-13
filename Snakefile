@@ -8,7 +8,8 @@ curr_samples = config["samples"]
 
 rule all:
 	input:
-		expand("analysis/mapped_reads/{sample}.bam",  sample = curr_samples),
+		expand("analysis/mapped_reads/{sample}_sorted.bam.bai",  sample = curr_samples),
+		expand("data/fastq_screen/{sample}", sample = curr_samples),
 		expand("data/fastqc/{sample}.fastqc.zip", sample = curr_samples)
 
 rule fastqc:
@@ -24,6 +25,27 @@ rule fastqc:
 	shell:
 		"fastqc -o {params.out_dir} -t {threads} {input}"
 	
+rule fastq_screen:
+	input:
+		expand("data/reads/{sample}_R1.fq.gz", sample = curr_samples)
+	output:
+		"data/fastq_screen/{sample}"
+	params:
+		aligner = config["fastq_screen"]["aligner"],
+		conf = config["fastq_screen"]["conf"],
+		ex_path = config["fastq_screen"]["ex_path"],
+		outdir = config["fastq_screen"]["outdir"]
+	threads:
+		config["threads"]["fastq_screen"]
+	shell:
+		'''
+		perl {params.ex_path} \
+		--threads {threads} \
+		--conf {params.conf} \
+		--outdir {params.outdir} \
+		--aligner {params.aligner} \
+		{input}
+		'''
 
 rule trimGalore:
 	input:
@@ -54,13 +76,13 @@ rule trimGalore:
 		{input} 2> {log}
 		'''
 		
-rule bwa:
+rule bwa_sorted:
 	input:
 		"data/genome.fa",
 		expand("data/trimmed_reads/{sample}_R1_trimmed.fq.gz", sample = curr_samples),
 		expand("data/trimmed_reads/{sample}_R2_trimmed.fq.gz", sample = curr_samples)
 	output:
-		"analysis/mapped_reads/{sample}.bam"
+		"analysis/mapped_reads/{sample}_sorted.bam"
 	params:
                 rg=r"@RG\tID:{sample}\tSM:{sample}"
 	log:
@@ -70,6 +92,37 @@ rule bwa:
 	shell:
                 '''
 		bwa mem {input} -R {params.rg} -t {threads} {input} | \
-                samtools view -Sb - > {output} 2> {log}
+                samtools sort -Sb - > {output} 2> {log}
 		'''
 
+rule remove_pcr_duplicates:
+	input:
+		expand("analysis/mapped_reads/{sample}_sorted.bam", sample = curr_samples)
+	output:
+		bam="analysis/mapped_reads/{sample}_sorted.bam",
+		dupes="analysis/duplicates/{sample}_dups.txt"
+	log:
+		"logs/pcr_dups/{sample}.log"
+	params:
+		picard_path = config["picard"]["path"]
+	shell:
+		'''
+		{params.picard_path}/picard.jar MarkDuplicates \
+		I = {input} \
+		O = {output.bam} \
+		M = {output.dupes} \
+		REMOVE_DUPLICATES = true
+		'''
+
+rule index_no_dups:
+	input:
+		expand("analysis/mapped_reads/{sample}_sorted.bam", sample = curr_samples)
+	output:
+		"analysis/mapped_reads/{sample}_sorted.bam.bai"
+	log:
+		"logs/pcr_dups/{sample}_index.log"
+	shell:
+		'''
+		samtools index {input}
+		'''
+	
