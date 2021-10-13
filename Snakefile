@@ -8,7 +8,7 @@ curr_samples = config["samples"]
 
 rule all:
 	input:
-		expand("analysis/mapped_reads/{sample}_sorted.bam.bai",  sample = curr_samples),
+		expand("analysis/mapped_reads/{sample}_filtered.bam.bai",  sample = curr_samples),
 		expand("data/fastq_screen/{sample}", sample = curr_samples),
 		expand("data/fastqc/{sample}.fastqc.zip", sample = curr_samples)
 
@@ -99,7 +99,7 @@ rule remove_pcr_duplicates:
 	input:
 		expand("analysis/mapped_reads/{sample}_sorted.bam", sample = curr_samples)
 	output:
-		bam="analysis/mapped_reads/{sample}_sorted.bam",
+		bam="analysis/mapped_reads/{sample}_noDups.bam",
 		dupes="analysis/duplicates/{sample}_dups.txt"
 	log:
 		"logs/pcr_dups/{sample}.log"
@@ -116,13 +116,68 @@ rule remove_pcr_duplicates:
 
 rule index_no_dups:
 	input:
-		expand("analysis/mapped_reads/{sample}_sorted.bam", sample = curr_samples)
+		expand("analysis/mapped_reads/{sample}_noDups.bam", sample = curr_samples)
 	output:
-		"analysis/mapped_reads/{sample}_sorted.bam.bai"
+		"analysis/mapped_reads/{sample}_noDups.bam.bai"
 	log:
 		"logs/pcr_dups/{sample}_index.log"
 	shell:
 		'''
 		samtools index {input}
 		'''
+
+rule remove_mito:
+	input:
+		expand("analysis/mapped_reads/{sample}_noDups.bam", sample = curr_samples),
+		expand("analysis/mapped_reads/{sample}_noDups.bam.bai", sample = curr_samples)
+	output:
+		"analysis/mapped_reads/{sample}_noMito.bam"
+	log:
+		"logs/remove_mito/{sample}.log"
+	shell:
+		'''
+		samtools idxstats {input} | \
+		cut -f 1 | \
+		grep -v chrM | \
+		xargs samtools view -b {input} > {output} 2> {log}
+		'''
+
+rule index_remove_mito:
+	input:
+		expand("analysis/mapped_reads/{sample}_noMito.bam", sample = curr_samples)
+	output:
+		"analysis/mapped_reads/{sample}_noMito.bam.bai"
+	log:
+		"logs/remove_mito/{sample}_index.log"
+	shell:
+		'''
+		samtools index {input}
+		'''
+
+rule get_proper_bam:
+	input:
+		expand("analysis/mapped_reads/{sample}_noMito.bam", sample = curr_samples),
+		expand("analysis/mapped_reads/{sample}_noMito.bam.bai", sample = curr_samples),
+	output:
+		"analysis/mapped_reads/{sample}_filtered.bam"
+	log:
+		"logs/filtered_bam/{sample}.log"	
+	shell:
+		'''
+		samtools view -h -q 30 {input} | \
+		samtools view -h -b -F 1804 -f 2  > {output}
+		'''
+
+rule get_filtered_bam_idx:
+	input:
+		expand("analysis/mapped_reads/{sample}_filtered.bam", sample = curr_samples)
+	output:
+		"analysis/mapped_reads/{sample}_filtered.bam.bai"
+	log:
+		"logs/filtered_bam/{sample}_index.log"
+	shell:
+		'''
+		samtools index {input}
+		''' 
 	
+
